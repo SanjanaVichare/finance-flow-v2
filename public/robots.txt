@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /transactions
+Disallow: /accounts
+Disallow: /categories
+Disallow: /budgets
+Disallow: /goals
+Disallow: /reports
+Disallow: /settings
