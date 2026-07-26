@@ -41,7 +41,7 @@ export const getMyCompany = createServerFn({ method: "GET" })
 
 export const listAccounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
+  .validator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("accounts").select("*").eq("company_id", data.companyId).order("created_at");
@@ -51,7 +51,7 @@ export const listAccounts = createServerFn({ method: "GET" })
 
 export const upsertAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id?: string; companyId: string; name: string; type: string; openingBalance: number }) =>
+  .validator((data: { id?: string; companyId: string; name: string; type: string; openingBalance: number }) =>
     z.object({
       id: z.string().uuid().optional(),
       companyId: z.string().uuid(),
@@ -78,7 +78,7 @@ export const upsertAccount = createServerFn({ method: "POST" })
 
 export const deleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("accounts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -89,7 +89,7 @@ export const deleteAccount = createServerFn({ method: "POST" })
 
 export const listCategories = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
+  .validator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("categories").select("*").eq("company_id", data.companyId).order("group").order("name");
@@ -99,7 +99,7 @@ export const listCategories = createServerFn({ method: "GET" })
 
 export const createCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string; name: string; group: "income" | "expense" }) =>
+  .validator((data: { companyId: string; name: string; group: "income" | "expense" }) =>
     z.object({
       companyId: z.string().uuid(),
       name: z.string().trim().min(1).max(60),
@@ -115,7 +115,7 @@ export const createCategory = createServerFn({ method: "POST" })
 
 export const deleteCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("categories").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -126,7 +126,7 @@ export const deleteCategory = createServerFn({ method: "POST" })
 
 export const listTransactions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string; from?: string; to?: string; limit?: number }) =>
+  .validator((data: { companyId: string; from?: string; to?: string; limit?: number }) =>
     z.object({
       companyId: z.string().uuid(),
       from: z.string().optional(),
@@ -151,7 +151,7 @@ export const listTransactions = createServerFn({ method: "GET" })
 
 export const createTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
+  .validator((data: {
     companyId: string;
     accountId: string;
     toAccountId?: string | null;
@@ -199,7 +199,7 @@ export const createTransaction = createServerFn({ method: "POST" })
 
 export const deleteTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; companyId: string }) =>
+  .validator((data: { id: string; companyId: string }) =>
     z.object({ id: z.string().uuid(), companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("transactions").delete().eq("id", data.id);
@@ -215,7 +215,7 @@ export const deleteTransaction = createServerFn({ method: "POST" })
 
 export const listBudgets = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string; month: string }) =>
+  .validator((data: { companyId: string; month: string }) =>
     z.object({ companyId: z.string().uuid(), month: z.string() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: budgets, error } = await context.supabase
@@ -249,7 +249,7 @@ export const listBudgets = createServerFn({ method: "GET" })
 
 export const upsertBudget = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string; categoryId: string; month: string; monthlyLimit: number }) =>
+  .validator((data: { companyId: string; categoryId: string; month: string; monthlyLimit: number }) =>
     z.object({
       companyId: z.string().uuid(),
       categoryId: z.string().uuid(),
@@ -273,7 +273,7 @@ export const upsertBudget = createServerFn({ method: "POST" })
 
 export const listGoals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
+  .validator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("goals").select("*").eq("company_id", data.companyId).order("created_at", { ascending: false });
@@ -283,7 +283,7 @@ export const listGoals = createServerFn({ method: "GET" })
 
 export const upsertGoal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
+  .validator((data: {
     id?: string; companyId: string; name: string; goalType: string;
     targetAmount: number; currentAmount: number; deadline?: string | null;
   }) => z.object({
@@ -316,7 +316,7 @@ export const upsertGoal = createServerFn({ method: "POST" })
 
 export const deleteGoal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("goals").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -327,7 +327,7 @@ export const deleteGoal = createServerFn({ method: "POST" })
 
 export const getDashboardSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
+  .validator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase;
     const today = new Date();

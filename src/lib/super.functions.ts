@@ -32,7 +32,7 @@ export const getActiveImpersonation = createServerFn({ method: "GET" })
 
 export const startImpersonation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string }) =>
+  .validator((data: { companyId: string }) =>
     z.object({ companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);

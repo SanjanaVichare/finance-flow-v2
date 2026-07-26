@@ -59,7 +59,7 @@ export const getMyProfile = createServerFn({ method: "GET" })
 
 export const completeFirstLoginReset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { newPassword: string }) =>
+  .validator((data: { newPassword: string }) =>
     z.object({ newPassword: z.string().min(8).max(128) }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -88,7 +88,7 @@ export const listAllCompanies = createServerFn({ method: "GET" })
 
 export const superCreateCompany = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
+  .validator((data: {
     company: {
       name: string; email?: string; phone?: string; address?: string;
       currency: string; timezone: string; gst_vat?: string; logo_url?: string;
@@ -176,7 +176,7 @@ export const superCreateCompany = createServerFn({ method: "POST" })
 
 export const updateCompanyStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string; status: "active" | "suspended" }) =>
+  .validator((data: { companyId: string; status: "active" | "suspended" }) =>
     z.object({ companyId: z.string().uuid(), status: z.enum(["active", "suspended"]) }).parse(data))
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
@@ -189,20 +189,74 @@ export const updateCompanyStatus = createServerFn({ method: "POST" })
 
 export const deleteCompanyById = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
+  .validator((data: { companyId: string }) =>
+    z.object({
+      companyId: z.string().uuid(),
+    }).parse(data)
+  )
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("companies").delete().eq("id", data.companyId);
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+
+    // Get every user in this company
+    const { data: members, error: membersError } = await supabaseAdmin
+      .from("company_members")
+      .select("user_id")
+      .eq("company_id", data.companyId);
+
+    if (membersError) throw new Error(membersError.message);
+
+    // Delete company roles
+    await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("company_id", data.companyId);
+
+    // Delete memberships
+    await supabaseAdmin
+      .from("company_members")
+      .delete()
+      .eq("company_id", data.companyId);
+
+    // Delete company
+    const { error } = await supabaseAdmin
+      .from("companies")
+      .delete()
+      .eq("id", data.companyId);
+
     if (error) throw new Error(error.message);
+
+    // Remove users that are no longer members anywhere
+    for (const member of members ?? []) {
+      const { count } = await supabaseAdmin
+        .from("company_members")
+        .select("*", {
+          head: true,
+          count: "exact",
+        })
+        .eq("user_id", member.user_id);
+
+      if ((count ?? 0) === 0) {
+        // delete profile
+        await supabaseAdmin
+          .from("profiles")
+          .delete()
+          .eq("id", member.user_id);
+
+        // delete auth user
+        await supabaseAdmin.auth.admin.deleteUser(member.user_id);
+      }
+    }
+
     return { ok: true };
   });
 
-// ---------------- users (super admin OR company admin) ----------------
-
 export const listCompanyUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
+  .validator((data: { companyId: string }) => z.object({ companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertCompanyAdmin(context.supabase, context.userId, data.companyId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -225,7 +279,7 @@ export const listCompanyUsers = createServerFn({ method: "GET" })
 
 export const adminCreateUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
+  .validator((data: {
     companyId: string;
     full_name: string; email: string; phone?: string;
     role: "manager" | "employee" | "company_admin";
@@ -278,7 +332,7 @@ export const adminCreateUser = createServerFn({ method: "POST" })
 
 export const resetUserPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { userId: string; companyId: string }) =>
+  .validator((data: { userId: string; companyId: string }) =>
     z.object({ userId: z.string().uuid(), companyId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertCompanyAdmin(context.supabase, context.userId, data.companyId);
@@ -295,7 +349,7 @@ export const resetUserPassword = createServerFn({ method: "POST" })
 
 export const setUserActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { userId: string; companyId: string; isActive: boolean }) =>
+  .validator((data: { userId: string; companyId: string; isActive: boolean }) =>
     z.object({ userId: z.string().uuid(), companyId: z.string().uuid(), isActive: z.boolean() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertCompanyAdmin(context.supabase, context.userId, data.companyId);
