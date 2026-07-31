@@ -7,12 +7,25 @@ import { useMyCompany } from "@/hooks/use-my-company";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatMoney } from "@/lib/format";
 import {
-  ArrowDownRight, ArrowUpRight, TrendingUp, Wallet,
+  ArrowDownRight,
+  ArrowUpRight,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 import {
-  ResponsiveContainer, PieChart, Pie, Cell, Tooltip as ReTooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
-  LineChart, Line,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip as ReTooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+  LineChart,
+  Line,
 } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -26,20 +39,75 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
+// ─── Color Palette ─────────────────────────────────────
+const COLORS = {
+  warmGold: "#FFD691",
+  deepBlue: "#233A66",
+  mutedGold: "#D7A859",
+  softPink: "#FF6E80",
+  white: "#FFFFFF",
+  cream: "#F8F6F0",
+  darkNavy: "#1A2A4A",
+};
+
+const CHART_COLORS = [
+  COLORS.deepBlue,
+  COLORS.warmGold,
+  COLORS.mutedGold,
+  COLORS.softPink,
+  COLORS.cream,
+];
+
+// ─── Scrollbar Styles ─────────────────────────────────
+const scrollbarStyles = `
+  .dashboard-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .dashboard-scroll::-webkit-scrollbar-track {
+    background: ${COLORS.cream};
+    border-radius: 3px;
+  }
+  .dashboard-scroll::-webkit-scrollbar-thumb {
+    background: ${COLORS.mutedGold};
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+  .dashboard-scroll::-webkit-scrollbar-thumb:hover {
+    background: ${COLORS.deepBlue};
+  }
+  .dashboard-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: ${COLORS.mutedGold} ${COLORS.cream};
+  }
+`;
+
+// ─── Page ──────────────────────────────────────────────
+
 function DashboardPage() {
   const { data, isLoading } = useMyCompany();
-  if (isLoading) return <div className="text-muted-foreground">Loading…</div>;
-  if (!data?.company) return <NoCompany />;
+
+  if (isLoading) return <LoadingState />;
+  if (!data?.company) return <NoCompanyState />;
+
   return <Dashboard companyId={data.company.id} currency={data.company.currency} />;
 }
 
-function NoCompany() {
+// ─── States ────────────────────────────────────────────
+
+function LoadingState() {
+  return <div className="text-muted-foreground">Loading…</div>;
+}
+
+function NoCompanyState() {
   return (
     <div className="mx-auto max-w-lg">
-      <Card>
+      <Card style={{ backgroundColor: COLORS.white, borderColor: COLORS.mutedGold }}>
         <CardHeader>
-          <CardTitle style={{ fontFamily: "var(--font-display)" }}>No workspace assigned</CardTitle>
-          <CardDescription>
+          <CardTitle style={{ fontFamily: "var(--font-display)", color: COLORS.deepBlue }}>
+            No workspace assigned
+          </CardTitle>
+          <CardDescription style={{ color: COLORS.darkNavy }}>
             Your account isn't linked to a company yet. Please contact your Super Admin or Company Admin
             to be added to a workspace.
           </CardDescription>
@@ -49,28 +117,47 @@ function NoCompany() {
   );
 }
 
+// ─── Components ────────────────────────────────────────
 
-function Kpi({ label, value, sub, icon: Icon, tone = "default" }: {
-  label: string; value: string; sub?: string; icon: React.ElementType;
+function KpiCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: React.ElementType;
   tone?: "default" | "success" | "destructive";
 }) {
-  const toneClass =
-    tone === "success" ? "text-success" : tone === "destructive" ? "text-destructive" : "text-foreground";
+  const getColor = () => {
+    if (tone === "success") return COLORS.deepBlue;
+    if (tone === "destructive") return COLORS.softPink;
+    return COLORS.deepBlue;
+  };
+
   return (
-    <Card>
+    <Card style={{ backgroundColor: COLORS.white, borderColor: COLORS.mutedGold }}>
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">{label}</div>
-          <Icon className="h-4 w-4 text-muted-foreground" />
+          <div className="text-sm" style={{ color: COLORS.mutedGold }}>{label}</div>
+          <Icon className="h-4 w-4" style={{ color: COLORS.mutedGold }} />
         </div>
-        <div className={`mt-2 text-2xl font-semibold tabular ${toneClass}`} style={{ fontFamily: "var(--font-display)" }}>
+        <div
+          className="mt-2 text-2xl font-semibold tabular"
+          style={{ fontFamily: "var(--font-display)", color: getColor() }}
+        >
           {value}
         </div>
-        {sub && <div className="mt-1 text-xs text-muted-foreground">{sub}</div>}
+        {sub && <div className="mt-1 text-xs" style={{ color: COLORS.mutedGold }}>{sub}</div>}
       </CardContent>
     </Card>
   );
 }
+
+// ─── Dashboard ─────────────────────────────────────────
 
 function Dashboard({ companyId, currency }: { companyId: string; currency: string }) {
   const fn = useServerFn(getDashboardSummary);
@@ -79,114 +166,248 @@ function Dashboard({ companyId, currency }: { companyId: string; currency: strin
     queryFn: () => fn({ data: { companyId } }),
   });
 
-  
-
-  const pieColors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
-  const chartColors = useMemo(() => ["var(--chart-1)","var(--chart-2)","var(--chart-3)","var(--chart-4)","var(--chart-5)"], []);
-
-  if (isLoading || !data) return <div className="text-muted-foreground">Loading dashboard…</div>;
+  if (isLoading || !data) return <LoadingState />;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
-          Dashboard
-        </h1>
-        <p className="text-sm text-muted-foreground">Live financial overview.</p>
-      </div>
+    <div className="space-y-6 dashboard-scroll" style={{ backgroundColor: COLORS.cream }}>
+      <style>{scrollbarStyles}</style>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Net balance" value={formatMoney(data.netBalance, currency)} icon={Wallet} />
-        <Kpi label="This month · Income" value={formatMoney(data.monthIncome, currency)} icon={ArrowUpRight} tone="success" />
-        <Kpi label="This month · Expense" value={formatMoney(data.monthExpense, currency)} icon={ArrowDownRight} tone="destructive" />
-        <Kpi label="Profit" value={formatMoney(data.profit, currency)} icon={TrendingUp} tone={data.profit >= 0 ? "success" : "destructive"} />
-      </div>
+      <Header />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">Income vs Expense (monthly)</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.monthlyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
-                <YAxis tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
-                <ReTooltip formatter={(v: number) => formatMoney(v, currency)} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }} />
-                <Legend />
-                <Bar dataKey="income" fill={chartColors[1]} radius={[6,6,0,0]} />
-                <Bar dataKey="expense" fill={chartColors[3]} radius={[6,6,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      <KpiGrid data={data} currency={currency} />
 
-        <Card>
-          <CardHeader><CardTitle className="text-base">Top expense categories</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            {data.categoryBreakdown.length === 0 ? (
-              <div className="grid h-full place-items-center text-sm text-muted-foreground">No expense data yet.</div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={data.categoryBreakdown} dataKey="value" nameKey="name" outerRadius={90} innerRadius={45}>
-                    {data.categoryBreakdown.map((_, i) => (
-                      <Cell key={i} fill={pieColors[i % pieColors.length]} />
-                    ))}
-                  </Pie>
-                  <ReTooltip formatter={(v: number) => formatMoney(v, currency)} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <ChartSection data={data} currency={currency} />
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Monthly trend</CardTitle></CardHeader>
-        <CardContent className="h-64">
+      <RecentTransactions data={data} currency={currency} />
+    </div>
+  );
+}
+
+// ─── Dashboard Subcomponents ──────────────────────────
+
+function Header() {
+  return (
+    <div>
+      <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)", color: COLORS.deepBlue }}>
+        Dashboard
+      </h1>
+      <p className="text-sm" style={{ color: COLORS.mutedGold }}>Live financial overview.</p>
+    </div>
+  );
+}
+
+function KpiGrid({ data, currency }: { data: any; currency: string }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <KpiCard label="Net balance" value={formatMoney(data.netBalance, currency)} icon={Wallet} />
+      <KpiCard
+        label="This month · Income"
+        value={formatMoney(data.monthIncome, currency)}
+        icon={ArrowUpRight}
+        tone="success"
+      />
+      <KpiCard
+        label="This month · Expense"
+        value={formatMoney(data.monthExpense, currency)}
+        icon={ArrowDownRight}
+        tone="destructive"
+      />
+      <KpiCard
+        label="Profit"
+        value={formatMoney(data.profit, currency)}
+        icon={TrendingUp}
+        tone={data.profit >= 0 ? "success" : "destructive"}
+      />
+    </div>
+  );
+}
+
+function ChartSection({
+  data,
+  currency,
+}: {
+  data: any;
+  currency: string;
+}) {
+  return (
+    <div className="grid gap-6 lg:grid-cols-3">
+      <MonthlyBarChart data={data.monthlyTrend} currency={currency} />
+      <CategoryPieChart data={data.categoryBreakdown} currency={currency} />
+    </div>
+  );
+}
+
+function MonthlyBarChart({
+  data,
+  currency,
+}: {
+  data: any[];
+  currency: string;
+}) {
+  return (
+    <Card className="lg:col-span-2" style={{ backgroundColor: COLORS.white, borderColor: COLORS.mutedGold }}>
+      <CardHeader>
+        <CardTitle className="text-base" style={{ color: COLORS.deepBlue }}>
+          Income vs Expense (monthly)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke={COLORS.cream} />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 12 }}
+              stroke={COLORS.mutedGold}
+            />
+            <YAxis
+              tick={{ fontSize: 12 }}
+              stroke={COLORS.mutedGold}
+            />
+            <ReTooltip
+              formatter={(v: number) => formatMoney(v, currency)}
+              contentStyle={{
+                background: COLORS.white,
+                border: `1px solid ${COLORS.mutedGold}`,
+                borderRadius: 8,
+                color: COLORS.deepBlue,
+              }}
+            />
+            <Legend
+              wrapperStyle={{ color: COLORS.deepBlue }}
+            />
+            <Bar
+              dataKey="income"
+              fill={COLORS.deepBlue}
+              radius={[6, 6, 0, 0]}
+            />
+            <Bar
+              dataKey="expense"
+              fill={COLORS.softPink}
+              radius={[6, 6, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CategoryPieChart({
+  data,
+  currency,
+}: {
+  data: any[];
+  currency: string;
+}) {
+  return (
+    <Card style={{ backgroundColor: COLORS.white, borderColor: COLORS.mutedGold }}>
+      <CardHeader>
+        <CardTitle className="text-base" style={{ color: COLORS.deepBlue }}>
+          Top expense categories
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="h-72">
+        {data.length === 0 ? (
+          <div className="grid h-full place-items-center text-sm" style={{ color: COLORS.mutedGold }}>
+            No expense data yet.
+          </div>
+        ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data.monthlyTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
-              <YAxis tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
-              <ReTooltip formatter={(v: number) => formatMoney(v, currency)} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8 }} />
-              <Legend />
-              <Line type="monotone" dataKey="income" stroke={chartColors[1]} strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="expense" stroke={chartColors[3]} strokeWidth={2} dot={false} />
-            </LineChart>
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={90}
+                innerRadius={45}
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
+                labelLine={true}
+              >
+                {data.map((_, i) => (
+                  <Cell
+                    key={i}
+                    fill={CHART_COLORS[i % CHART_COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <ReTooltip
+                formatter={(v: number) => formatMoney(v, currency)}
+                contentStyle={{
+                  background: COLORS.white,
+                  border: `1px solid ${COLORS.mutedGold}`,
+                  borderRadius: 8,
+                  color: COLORS.deepBlue,
+                }}
+              />
+            </PieChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Recent transactions</CardTitle></CardHeader>
-        <CardContent>
-          {data.recent.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No transactions yet.</div>
-          ) : (
-            <div className="divide-y">
-              {data.recent.map((t) => (
-                <div key={t.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="text-sm font-medium">
-                      {t.description || t.vendor || (t.category as unknown as { name?: string } | null)?.name || "Transaction"}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {t.occurred_on} · {(t.account as unknown as { name?: string } | null)?.name}
-                    </div>
-                  </div>
-                  <div className={`tabular text-sm font-semibold ${t.type === "income" ? "text-success" : t.type === "expense" ? "text-destructive" : "text-foreground"}`}>
-                    {t.type === "expense" ? "-" : t.type === "income" ? "+" : ""}
-                    {formatMoney(t.amount, currency)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+function RecentTransactions({ data, currency }: { data: any; currency: string }) {
+  return (
+    <Card style={{ backgroundColor: COLORS.white, borderColor: COLORS.mutedGold }}>
+      <CardHeader>
+        <CardTitle className="text-base" style={{ color: COLORS.deepBlue }}>
+          Recent transactions
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {data.recent.length === 0 ? (
+          <div className="text-sm" style={{ color: COLORS.mutedGold }}>No transactions yet.</div>
+        ) : (
+          <div className="divide-y" style={{ borderColor: COLORS.cream }}>
+            {data.recent.map((t: any) => (
+              <TransactionItem key={t.id} transaction={t} currency={currency} />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TransactionItem({ transaction, currency }: { transaction: any; currency: string }) {
+  const description =
+    transaction.description ||
+    transaction.vendor ||
+    (transaction.category as unknown as { name?: string })?.name ||
+    "Transaction";
+
+  const accountName = (transaction.account as unknown as { name?: string })?.name;
+
+  const amountSign = transaction.type === "expense" ? "-" : transaction.type === "income" ? "+" : "";
+
+  // Determine color based on transaction type
+  const getColor = () => {
+    if (transaction.type === "income") return COLORS.deepBlue;
+    if (transaction.type === "expense") return COLORS.softPink;
+    return COLORS.mutedGold;
+  };
+
+  return (
+    <div className="flex items-center justify-between py-3">
+      <div>
+        <div className="text-sm font-medium" style={{ color: COLORS.deepBlue }}>
+          {description}
+        </div>
+        <div className="text-xs" style={{ color: COLORS.mutedGold }}>
+          {transaction.occurred_on} · {accountName}
+        </div>
+      </div>
+      <div
+        className="tabular text-sm font-semibold"
+        style={{ color: getColor() }}
+      >
+        {amountSign}
+        {formatMoney(transaction.amount, currency)}
+      </div>
     </div>
   );
 }

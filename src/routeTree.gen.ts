@@ -15,9 +15,11 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FirstLoginRouteImport } from './routes/first-login'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountsRouteImport } from './routes/_authenticated/accounts'
+import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticated/budgets'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDynamicRouteImport } from './routes/_authenticated/dynamic'
 import { Route as AuthenticatedEmployeesRouteImport } from './routes/_authenticated/employees'
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
@@ -59,6 +61,11 @@ const AuthenticatedAccountsRoute = AuthenticatedAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBudgetsRoute = AuthenticatedBudgetsRouteImport.update({
   id: '/budgets',
   path: '/budgets',
@@ -72,6 +79,11 @@ const AuthenticatedCategoriesRoute = AuthenticatedCategoriesRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDynamicRoute = AuthenticatedDynamicRouteImport.update({
+  id: '/dynamic',
+  path: '/dynamic',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEmployeesRoute = AuthenticatedEmployeesRouteImport.update({
@@ -140,9 +152,11 @@ export interface FileRoutesByFullPath {
   '/first-login': typeof FirstLoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/accounts': typeof AuthenticatedAccountsRoute
+  '/attendance': typeof AuthenticatedAttendanceRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dynamic': typeof AuthenticatedDynamicRoute
   '/employees': typeof AuthenticatedEmployeesRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/products': typeof AuthenticatedProductsRoute
@@ -161,9 +175,11 @@ export interface FileRoutesByTo {
   '/first-login': typeof FirstLoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/accounts': typeof AuthenticatedAccountsRoute
+  '/attendance': typeof AuthenticatedAttendanceRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dynamic': typeof AuthenticatedDynamicRoute
   '/employees': typeof AuthenticatedEmployeesRoute
   '/goals': typeof AuthenticatedGoalsRoute
   '/products': typeof AuthenticatedProductsRoute
@@ -184,9 +200,11 @@ export interface FileRoutesById {
   '/first-login': typeof FirstLoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/accounts': typeof AuthenticatedAccountsRoute
+  '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/budgets': typeof AuthenticatedBudgetsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dynamic': typeof AuthenticatedDynamicRoute
   '/_authenticated/employees': typeof AuthenticatedEmployeesRoute
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
@@ -207,9 +225,11 @@ export interface FileRouteTypes {
     | '/first-login'
     | '/sitemap.xml'
     | '/accounts'
+    | '/attendance'
     | '/budgets'
     | '/categories'
     | '/dashboard'
+    | '/dynamic'
     | '/employees'
     | '/goals'
     | '/products'
@@ -228,9 +248,11 @@ export interface FileRouteTypes {
     | '/first-login'
     | '/sitemap.xml'
     | '/accounts'
+    | '/attendance'
     | '/budgets'
     | '/categories'
     | '/dashboard'
+    | '/dynamic'
     | '/employees'
     | '/goals'
     | '/products'
@@ -250,9 +272,11 @@ export interface FileRouteTypes {
     | '/first-login'
     | '/sitemap.xml'
     | '/_authenticated/accounts'
+    | '/_authenticated/attendance'
     | '/_authenticated/budgets'
     | '/_authenticated/categories'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dynamic'
     | '/_authenticated/employees'
     | '/_authenticated/goals'
     | '/_authenticated/products'
@@ -318,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/attendance': {
+      id: '/_authenticated/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/budgets': {
       id: '/_authenticated/budgets'
       path: '/budgets'
@@ -337,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dynamic': {
+      id: '/_authenticated/dynamic'
+      path: '/dynamic'
+      fullPath: '/dynamic'
+      preLoaderRoute: typeof AuthenticatedDynamicRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/employees': {
@@ -421,9 +459,11 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountsRoute: typeof AuthenticatedAccountsRoute
+  AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedBudgetsRoute: typeof AuthenticatedBudgetsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDynamicRoute: typeof AuthenticatedDynamicRoute
   AuthenticatedEmployeesRoute: typeof AuthenticatedEmployeesRoute
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
@@ -439,9 +479,11 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountsRoute: AuthenticatedAccountsRoute,
+  AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedBudgetsRoute: AuthenticatedBudgetsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDynamicRoute: AuthenticatedDynamicRoute,
   AuthenticatedEmployeesRoute: AuthenticatedEmployeesRoute,
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,

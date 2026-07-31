@@ -22,6 +22,41 @@ export const Route = createFileRoute("/_authenticated/transactions")({
   component: TransactionsPage,
 });
 
+// ─── Color Palette ─────────────────────────────────────
+const COLORS = {
+  warmGold: "#FFD691",
+  deepBlue: "#233A66",
+  mutedGold: "#D7A859",
+  softPink: "#FF6E80",
+  white: "#FFFFFF",
+  cream: "#F8F6F0",
+  darkNavy: "#1A2A4A",
+};
+
+// ─── Scrollbar Styles ─────────────────────────────────
+const scrollbarStyles = `
+  .transactions-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .transactions-scroll::-webkit-scrollbar-track {
+    background: ${COLORS.cream};
+    border-radius: 3px;
+  }
+  .transactions-scroll::-webkit-scrollbar-thumb {
+    background: ${COLORS.mutedGold};
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+  .transactions-scroll::-webkit-scrollbar-thumb:hover {
+    background: ${COLORS.deepBlue};
+  }
+  .transactions-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: ${COLORS.mutedGold} ${COLORS.cream};
+  }
+`;
+
 function TransactionsPage() {
   const { data: my } = useMyCompany();
   const companyId = my?.company?.id;
@@ -91,35 +126,94 @@ function TransactionsPage() {
   if (!companyId) return <div className="text-muted-foreground">Create a workspace first.</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 transactions-scroll" style={{ backgroundColor: COLORS.cream }}>
+      <style>{scrollbarStyles}</style>
+
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)" }}>Transactions</h1>
-          <p className="text-sm text-muted-foreground">Record income, expenses, and transfers.</p>
+          <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)", color: COLORS.deepBlue }}>
+            Transactions
+          </h1>
+          <p className="text-sm" style={{ color: COLORS.mutedGold }}>
+            Record income, expenses, and transfers.
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> New transaction</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle>New transaction</DialogTitle></DialogHeader>
+          <DialogTrigger asChild>
+            <Button
+              className="gap-2"
+              style={{
+                backgroundColor: COLORS.deepBlue,
+                color: COLORS.white,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.mutedGold;
+                e.currentTarget.style.color = COLORS.deepBlue;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.deepBlue;
+                e.currentTarget.style.color = COLORS.white;
+              }}
+            >
+              <Plus className="h-4 w-4" /> New transaction
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg" style={{ backgroundColor: COLORS.white, borderColor: COLORS.mutedGold }}>
+            <DialogHeader>
+              <DialogTitle style={{ color: COLORS.deepBlue }}>New transaction</DialogTitle>
+            </DialogHeader>
 
             <Tabs value={type} onValueChange={(v) => setType(v as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="expense">Expense</TabsTrigger>
-                <TabsTrigger value="income">Income</TabsTrigger>
-                <TabsTrigger value="transfer">Transfer</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3" style={{ backgroundColor: COLORS.cream }}>
+                <TabsTrigger
+                  value="expense"
+                  className="data-[state=active]:bg-deepBlue data-[state=active]:text-white"
+                  style={{
+                    color: COLORS.deepBlue,
+                  }}
+                >
+                  Expense
+                </TabsTrigger>
+                <TabsTrigger
+                  value="income"
+                  className="data-[state=active]:bg-deepBlue data-[state=active]:text-white"
+                  style={{
+                    color: COLORS.deepBlue,
+                  }}
+                >
+                  Income
+                </TabsTrigger>
+                <TabsTrigger
+                  value="transfer"
+                  className="data-[state=active]:bg-deepBlue data-[state=active]:text-white"
+                  style={{
+                    color: COLORS.deepBlue,
+                  }}
+                >
+                  Transfer
+                </TabsTrigger>
               </TabsList>
             </Tabs>
 
             <div className="grid gap-4 grid-cols-2">
               <div className="space-y-2 col-span-2">
-                <Label>Amount ({currency})</Label>
-                <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value === "" ? "" : Number(e.target.value))} />
+                <Label style={{ color: COLORS.deepBlue }}>Amount ({currency})</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="focus:border-mutedGold focus:ring-mutedGold"
+                  style={{ borderColor: COLORS.mutedGold }}
+                />
               </div>
 
               <div className="space-y-2">
-                <Label>{type === "transfer" ? "From account" : "Account"}</Label>
+                <Label style={{ color: COLORS.deepBlue }}>{type === "transfer" ? "From account" : "Account"}</Label>
                 <Select value={accountId} onValueChange={setAccountId}>
-                  <SelectTrigger><SelectValue placeholder="Choose account" /></SelectTrigger>
+                  <SelectTrigger className="focus:border-mutedGold focus:ring-mutedGold" style={{ borderColor: COLORS.mutedGold }}>
+                    <SelectValue placeholder="Choose account" />
+                  </SelectTrigger>
                   <SelectContent>
                     {accounts.data?.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                   </SelectContent>
@@ -128,9 +222,11 @@ function TransactionsPage() {
 
               {type === "transfer" ? (
                 <div className="space-y-2">
-                  <Label>To account</Label>
+                  <Label style={{ color: COLORS.deepBlue }}>To account</Label>
                   <Select value={toAccountId} onValueChange={setToAccountId}>
-                    <SelectTrigger><SelectValue placeholder="Choose account" /></SelectTrigger>
+                    <SelectTrigger className="focus:border-mutedGold focus:ring-mutedGold" style={{ borderColor: COLORS.mutedGold }}>
+                      <SelectValue placeholder="Choose account" />
+                    </SelectTrigger>
                     <SelectContent>
                       {accounts.data?.filter((a) => a.id !== accountId).map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                     </SelectContent>
@@ -138,9 +234,11 @@ function TransactionsPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <Label style={{ color: COLORS.deepBlue }}>Category</Label>
                   <Select value={categoryId} onValueChange={setCategoryId}>
-                    <SelectTrigger><SelectValue placeholder="Choose category" /></SelectTrigger>
+                    <SelectTrigger className="focus:border-mutedGold focus:ring-mutedGold" style={{ borderColor: COLORS.mutedGold }}>
+                      <SelectValue placeholder="Choose category" />
+                    </SelectTrigger>
                     <SelectContent>
                       {relevantCategories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                     </SelectContent>
@@ -149,26 +247,46 @@ function TransactionsPage() {
               )}
 
               <div className="space-y-2">
-                <Label>Payment method</Label>
+                <Label style={{ color: COLORS.deepBlue }}>Payment method</Label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="focus:border-mutedGold focus:ring-mutedGold" style={{ borderColor: COLORS.mutedGold }}>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {["cash","upi","card","bank","other"].map((p) => <SelectItem key={p} value={p}>{p.toUpperCase()}</SelectItem>)}
+                    {["cash", "upi", "card", "bank", "other"].map((p) => <SelectItem key={p} value={p}>{p.toUpperCase()}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Date</Label>
-                <Input type="date" value={occurredOn} onChange={(e) => setOccurredOn(e.target.value)} />
+                <Label style={{ color: COLORS.deepBlue }}>Date</Label>
+                <Input
+                  type="date"
+                  value={occurredOn}
+                  onChange={(e) => setOccurredOn(e.target.value)}
+                  className="focus:border-mutedGold focus:ring-mutedGold"
+                  style={{ borderColor: COLORS.mutedGold }}
+                />
               </div>
 
               <div className="space-y-2 col-span-2">
-                <Label>Vendor / Person</Label>
-                <Input value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="Optional" />
+                <Label style={{ color: COLORS.deepBlue }}>Vendor / Person</Label>
+                <Input
+                  value={vendor}
+                  onChange={(e) => setVendor(e.target.value)}
+                  placeholder="Optional"
+                  className="focus:border-mutedGold focus:ring-mutedGold"
+                  style={{ borderColor: COLORS.mutedGold }}
+                />
               </div>
               <div className="space-y-2 col-span-2">
-                <Label>Note</Label>
-                <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Label style={{ color: COLORS.deepBlue }}>Note</Label>
+                <Textarea
+                  rows={2}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="focus:border-mutedGold focus:ring-mutedGold"
+                  style={{ borderColor: COLORS.mutedGold }}
+                />
               </div>
             </div>
 
@@ -176,45 +294,84 @@ function TransactionsPage() {
               <Button
                 onClick={() => submit.mutate()}
                 disabled={submit.isPending || !accountId || !amount || (type === "transfer" && !toAccountId)}
-              >Save</Button>
+                style={{
+                  backgroundColor: COLORS.deepBlue,
+                  color: COLORS.white,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.mutedGold;
+                  e.currentTarget.style.color = COLORS.deepBlue;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.deepBlue;
+                  e.currentTarget.style.color = COLORS.white;
+                }}
+              >
+                Save
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card>
+      <Card style={{ backgroundColor: COLORS.white, borderColor: COLORS.mutedGold }}>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Account</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+              <TableRow style={{ backgroundColor: COLORS.cream }}>
+                <TableHead style={{ color: COLORS.deepBlue, fontWeight: "600" }}>Date</TableHead>
+                <TableHead style={{ color: COLORS.deepBlue, fontWeight: "600" }}>Description</TableHead>
+                <TableHead style={{ color: COLORS.deepBlue, fontWeight: "600" }}>Category</TableHead>
+                <TableHead style={{ color: COLORS.deepBlue, fontWeight: "600" }}>Account</TableHead>
+                <TableHead className="text-right" style={{ color: COLORS.deepBlue, fontWeight: "600" }}>Amount</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
               {(txns.data ?? []).map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="text-muted-foreground">{t.occurred_on}</TableCell>
+                <TableRow key={t.id} className="hover:bg-cream/50" style={{ borderColor: COLORS.cream }}>
+                  <TableCell style={{ color: COLORS.mutedGold }}>{t.occurred_on}</TableCell>
                   <TableCell>
-                    <div className="font-medium">{t.description || t.vendor || "—"}</div>
-                    {t.vendor && t.description && <div className="text-xs text-muted-foreground">{t.vendor}</div>}
+                    <div className="font-medium" style={{ color: COLORS.deepBlue }}>
+                      {t.description || t.vendor || "—"}
+                    </div>
+                    {t.vendor && t.description && (
+                      <div className="text-xs" style={{ color: COLORS.mutedGold }}>
+                        {t.vendor}
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="text-sm">{(t.category as unknown as { name?: string } | null)?.name ?? "—"}</TableCell>
-                  <TableCell className="text-sm">{(t.account as unknown as { name?: string } | null)?.name}</TableCell>
-                  <TableCell className={`text-right tabular font-medium ${t.type === "income" ? "text-success" : t.type === "expense" ? "text-destructive" : ""}`}>
-                    {t.type === "expense" ? "-" : t.type === "income" ? "+" : ""}{formatMoney(t.amount, currency)}
+                  <TableCell className="text-sm" style={{ color: COLORS.deepBlue }}>
+                    {(t.category as unknown as { name?: string } | null)?.name ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-sm" style={{ color: COLORS.deepBlue }}>
+                    {(t.account as unknown as { name?: string } | null)?.name}
+                  </TableCell>
+                  <TableCell className={`text-right tabular font-medium ${t.type === "income" ? "text-deepBlue" :
+                      t.type === "expense" ? "text-softPink" : ""
+                    }`}>
+                    {t.type === "expense" ? "-" : t.type === "income" ? "+" : ""}
+                    {formatMoney(t.amount, currency)}
                   </TableCell>
                   <TableCell>
-                    <Button size="icon" variant="ghost" onClick={() => remove.mutate(t.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => remove.mutate(t.id)}
+                      style={{ color: COLORS.softPink }}
+                      className="hover:bg-pink-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
               {(!txns.data || txns.data.length === 0) && (
-                <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">No transactions yet.</TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={6} className="py-10 text-center text-sm" style={{ color: COLORS.mutedGold }}>
+                    No transactions yet.
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
